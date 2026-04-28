@@ -262,39 +262,93 @@
         }
         
         /* Enhanced Table Styles */
+        /* Table Enhanced Styling */
         .table-container {
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
+
         .table-row {
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
         }
-        
+
+        .table-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: transparent;
+            transition: background 0.3s;
+        }
+
+        .table-row:hover::before {
+            background: linear-gradient(180deg, #0891b2, #06b6d4);
+        }
+
         .table-row:nth-child(even) {
-            background: linear-gradient(135deg, rgba(239, 246, 255, 0.5) 0%, rgba(219, 234, 254, 0.3) 100%);
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%);
         }
         .dark .table-row:nth-child(even) {
-            background: linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(30, 64, 175, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.2) 0%, rgba(30, 64, 175, 0.15) 100%);
         }
-        
+
         .table-row:hover {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(34, 211, 238, 0.05) 100%);
-            transform: scale(1.005);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(34, 211, 238, 0.08) 100%);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
         .dark .table-row:hover {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(34, 211, 238, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(34, 211, 238, 0.15) 100%);
         }
-        
+
         .table-row.expanded {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(34, 211, 238, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(34, 211, 238, 0.1) 100%);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
-        
+
+        .table-row.expanded::before {
+            background: #0891b2;
+        }
+
         .table-expand-content {
-            animation: expandHeight 0.3s ease-out;
+            animation: expandSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
+        @keyframes expandSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 500px;
+            }
+        }
+
+        /* Detail Cards in Expanded Row */
+        .table-expand-content .bg-white {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .table-expand-content .bg-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .table-expand-content .bg-white {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        }
+
         /* Sticky header */
         .table-header {
             position: sticky;
@@ -356,6 +410,140 @@
             background: rgba(8, 145, 178, 0.3);
         }
         
+        /* Mobile Navigation Enhanced */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .dark .mobile-nav {
+            background: rgba(15, 23, 42, 0.98);
+            border-top-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 16px;
+            color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            min-width: 64px;
+            position: relative;
+        }
+
+        .mobile-nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: #0891b2;
+            border-radius: 3px;
+            transform: translateX(-50%);
+            transition: width 0.3s;
+        }
+
+        .mobile-nav-item.active::after,
+        .mobile-nav-item:hover::after {
+            width: 40px;
+        }
+
+        .mobile-nav-item:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-nav-item:hover,
+        .mobile-nav-item.active {
+            color: #0891b2;
+        }
+
+        .dark .mobile-nav-item {
+            color: #94a3b8;
+        }
+
+        .dark .mobile-nav-item:hover,
+        .dark .mobile-nav-item.active {
+            color: #67e8f9;
+        }
+
+        .dark .mobile-nav-item::after {
+            background: #67e8f9;
+        }
+
+        .mobile-nav-item .icon {
+            width: 28px;
+            height: 28px;
+            transition: transform 0.3s;
+        }
+
+        .mobile-nav-item:active .icon {
+            transform: scale(0.9);
+        }
+
+        .mobile-nav-item .label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: calc(60px + env(safe-area-inset-bottom));
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4);
+            z-index: 45;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-to-top:active {
+            transform: scale(0.95);
+        }
+
+        /* Mobile Table Scroll */
+        .table-container {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: rgba(8, 145, 178, 0.3);
+            border-radius: 4px;
+        }
+
         /* Mobile Navigation */
         .mobile-nav {
             position: fixed;
@@ -436,6 +624,163 @@
         .btn-modern:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Stat Card Enhanced Animations */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .stat-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow:
+                0 20px 40px -10px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Shimmer loading effect */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                #f0f0f0 25%,
+                #e0e0e0 50%,
+                #f0f0f0 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .dark .skeleton {
+            background: linear-gradient(
+                90deg,
+                #374151 25%,
+                #4b5563 50%,
+                #374151 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Chart Card Modern */
+        .chart-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            pointer-events: none;
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced Search Input */
+        .search-enhanced {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(8, 145, 178, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-enhanced:focus {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+            transform: scale(1.01);
+        }
+
+        .dark .search-enhanced {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(30, 41, 59, 0.7));
+            border-color: rgba(8, 145, 178, 0.3);
+        }
+
+        /* Filter Chips Modern */
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            color: #0369a1;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(3, 105, 161, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .dark .filter-chip {
+            background: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
+            color: #67e8f9;
+            border-color: rgba(103, 232, 249, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-chip:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .filter-chip .remove {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            color: currentColor;
+            font-size: 16px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .filter-chip .remove:hover {
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            transform: scale(1.2) rotate(90deg);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         /* Fix Leaflet Map z-index - prevent map from being always on top */
@@ -680,18 +1025,18 @@
                     </div>
                     
                     <!-- Distribution Chart -->
-                    <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-semibold text-slate-800 dark:text-white text-sm">📊 Distribusi</h3>
+                    <div class="chart-card card-modern p-5 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-800 dark:text-white">📊 Distribusi</h3>
                             <div class="flex gap-1">
                                 <button @click="chartType = 'pie'; updateDistributionChart()"
-                                        :class="chartType === 'pie' ? 'bg-cyan-600 text-white' : 'bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300'"
-                                        class="px-3 py-1 rounded-md text-xs font-medium transition-colors">
+                                        :class="chartType === 'pie' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30' : 'bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-500'"
+                                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
                                     🥧 Pie
                                 </button>
                                 <button @click="chartType = 'bar'; updateDistributionChart()"
-                                        :class="chartType === 'bar' ? 'bg-cyan-600 text-white' : 'bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300'"
-                                        class="px-3 py-1 rounded-md text-xs font-medium transition-colors">
+                                        :class="chartType === 'bar' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30' : 'bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-500'"
+                                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
                                     📊 Bar
                                 </button>
                             </div>
@@ -930,29 +1275,29 @@
                     </div>
                     
                     <!-- Kecamatan Charts Section -->
-                    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4">
+                    <div class="chart-card card-modern p-5 bg-white dark:bg-slate-800 rounded-xl">
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">📊 <span x-text="kecChartTitle"></span></h2>
-                            
+                            <h2 class="text-lg font-bold text-slate-800 dark:text-white">📊 <span x-text="kecChartTitle"></span></h2>
+
                             <!-- Chart mode buttons -->
                             <div class="flex flex-wrap gap-1">
                                 <template x-for="mode in kecChartModes" :key="mode.key">
                                     <button @click="switchKecChartMode(mode.key)"
-                                            :class="kecChartMode === mode.key ? 'bg-cyan-600 text-white' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300'"
-                                            class="px-3 py-1 rounded-md text-xs font-medium transition-colors"
+                                            :class="kecChartMode === mode.key ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 transform hover:scale-105"
                                             x-text="mode.label">
                                     </button>
                                 </template>
                             </div>
                         </div>
-                        
+
                         <div class="chart-container" :style="`height: ${kecChartHeight}px`">
                             <canvas id="kecamatanChart"></canvas>
                         </div>
                     </div>
-                    
+
                     <!-- Data Table Section -->
-                    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4">
+                    <div class="chart-card card-modern p-5 bg-white dark:bg-slate-800 rounded-xl">
                         <div class="flex flex-col gap-4 mb-4">
                             <!-- Header -->
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -1123,15 +1468,15 @@
         <!-- Mobile Navigation Bar -->
         <nav class="mobile-nav md:hidden" x-data="{ activeTab: 'dashboard' }">
             <div class="flex items-center justify-around py-2">
-                <button @click="activeTab = 'dashboard'; scrollToSection('dashboard')" 
+                <button @click="activeTab = 'dashboard'; scrollToSection('dashboard')"
                         :class="{ 'active': activeTab === 'dashboard' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
-                    <span class="label">Dashboard</span>
+                    <span class="label">Home</span>
                 </button>
-                <button @click="activeTab = 'data'; scrollToSection('table')" 
+                <button @click="activeTab = 'data'; scrollToSection('table')"
                         :class="{ 'active': activeTab === 'data' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1139,7 +1484,7 @@
                     </svg>
                     <span class="label">Data</span>
                 </button>
-                <button @click="activeTab = 'map'; scrollToSection('map')" 
+                <button @click="activeTab = 'map'; scrollToSection('map')"
                         :class="{ 'active': activeTab === 'map' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1147,7 +1492,7 @@
                     </svg>
                     <span class="label">Peta</span>
                 </button>
-                <button @click="activeTab = 'filter'; sidebarOpen = !sidebarOpen" 
+                <button @click="activeTab = 'filter'; sidebarOpen = !sidebarOpen"
                         :class="{ 'active': activeTab === 'filter' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1155,7 +1500,7 @@
                     </svg>
                     <span class="label">Filter</span>
                 </button>
-                <button @click="activeTab = 'export'; scrollToSection('export')" 
+                <button @click="activeTab = 'export'; scrollToSection('export')"
                         :class="{ 'active': activeTab === 'export' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1165,6 +1510,18 @@
                 </button>
             </div>
         </nav>
+
+        <!-- Back to Top Button (Mobile) -->
+        <button @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+                class="back-to-top md:hidden"
+                x-data="{ visible: false }"
+                x-init="window.addEventListener('scroll', () => { visible = window.scrollY > 300 })"
+                x-show="visible"
+                aria-label="Back to top">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l-7 7m7-7v18"></path>
+            </svg>
+        </button>
         
         <!-- Footer -->
         <footer class="bg-slate-800 text-slate-300 py-4 pb-20 md:pb-4 mt-auto">
@@ -1176,8 +1533,8 @@
         </footer>
     </div>
 
-    <!-- Load Scripts - Using v5 to force reload -->
+    <!-- Load Scripts - Using v6 for UI improvements -->
     <script src="auth-v2.js"></script>
-    <script src="app-v5.js"></script>
+    <script src="app-v6.js"></script>
 </body>
 </html>
