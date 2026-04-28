@@ -45,7 +45,9 @@ export default function DataManagementPage() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
@@ -77,7 +79,9 @@ export default function DataManagementPage() {
         ...(search && { search })
       });
 
-      const response = await fetch(`/api/pelaku-usaha?${params}`);
+      const response = await fetch(`/api/pelaku-usaha?${params}`, {
+        credentials: 'include'
+      });
       if (response.ok) {
         const result = await response.json();
         setData(result.data || []);
@@ -105,6 +109,7 @@ export default function DataManagementPage() {
     try {
       const response = await fetch(`/api/pelaku-usaha/${editingData.id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingData)
       });
@@ -125,7 +130,8 @@ export default function DataManagementPage() {
 
     try {
       const response = await fetch(`/api/pelaku-usaha/${deletingId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
 
       if (response.ok) {

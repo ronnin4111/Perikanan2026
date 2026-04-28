@@ -55,7 +55,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
@@ -88,7 +90,9 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
@@ -100,7 +104,9 @@ export default function AdminDashboard() {
 
   const fetchActivityLogs = async () => {
     try {
-      const response = await fetch('/api/admin/activity');
+      const response = await fetch('/api/admin/activity', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setActivityLogs(data.logs || []);
@@ -112,7 +118,9 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/pelaku-usaha');
+      const response = await fetch('/api/pelaku-usaha', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setStats(prev => ({
@@ -130,6 +138,7 @@ export default function AdminDashboard() {
     try {
       const response = await fetch('/api/admin/users', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser)
       });
@@ -148,7 +157,8 @@ export default function AdminDashboard() {
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/toggle`, {
-        method: 'PATCH'
+        method: 'PATCH',
+        credentials: 'include'
       });
 
       if (response.ok) {

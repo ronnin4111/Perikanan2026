@@ -44,7 +44,9 @@ export default function InputDataPage() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
@@ -92,6 +94,7 @@ export default function InputDataPage() {
     try {
       const response = await fetch('/api/pelaku-usaha', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -132,7 +135,10 @@ export default function InputDataPage() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', { 
+      method: 'POST',
+      credentials: 'include'
+    });
     router.push('/login');
   };
 
