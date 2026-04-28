@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAuth, logActivity, getUserIP, LogAction } from '@/lib/auth';
-import { PelakuUsaha } from '@prisma/client';
+import { requireAuth, logActivity, getUserIP } from '@/lib/auth';
+import { PelakuUsaha, LogAction } from '@prisma/client';
 import { isSheetConfigured, addToSheet } from '@/lib/google-sheets';
 
 // GET - List all pelaku usaha

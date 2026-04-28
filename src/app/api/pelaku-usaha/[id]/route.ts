@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAuth, requireAdmin, logActivity, getUserIP, LogAction } from '@/lib/auth';
+import { requireAuth, requireAdmin, logActivity, getUserIP } from '@/lib/auth';
+import { LogAction } from '@prisma/client';
 import { isSheetConfigured, updateSheet, deleteFromSheet, findRowNumberById } from '@/lib/google-sheets';
 
 // GET - Get single pelaku usaha by ID

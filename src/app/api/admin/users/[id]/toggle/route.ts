@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin, logActivity, getUserIP, LogAction } from '@/lib/auth';
+import { requireAdmin, logActivity, getUserIP } from '@/lib/auth';
+import { LogAction } from '@prisma/client';
 
 // PATCH - Toggle user active status (Admin only)
 export async function PATCH(
