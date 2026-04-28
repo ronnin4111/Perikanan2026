@@ -17,6 +17,10 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    console.log('📝 [CLIENT] Login form submitted');
+    console.log('📝 [CLIENT] Email:', formData.email);
+    console.log('📝 [CLIENT] Password length:', formData.password?.length);
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -24,26 +28,35 @@ export default function LoginPage() {
         body: JSON.stringify(formData)
       });
 
+      console.log('📝 [CLIENT] Response status:', response.status);
+      console.log('📝 [CLIENT] Response ok:', response.ok);
+
       const data = await response.json();
+      console.log('📝 [CLIENT] Response data:', data);
 
       if (response.ok && data.success) {
         // Save token to localStorage
         localStorage.setItem('auth-token', data.token);
         localStorage.setItem('auth-user', JSON.stringify(data.user));
-        
-        console.log('Token saved to localStorage');
-        
+
+        console.log('✅ [CLIENT] Token saved to localStorage');
+        console.log('✅ [CLIENT] User data:', data.user);
+
         // Redirect based on role
         if (data.user.role === 'ADMIN') {
+          console.log('🔀 [CLIENT] Redirecting to admin dashboard...');
           window.location.href = '/admin/dashboard';
         } else {
+          console.log('🔀 [CLIENT] Redirecting to input page...');
           window.location.href = '/input';
         }
       } else {
+        console.log('❌ [CLIENT] Login failed');
+        console.log('❌ [CLIENT] Error message:', data.error);
         setError(data.error || 'Login gagal');
       }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('❌ [CLIENT] Login error:', err);
       setError('Terjadi kesalahan saat login');
     } finally {
       setLoading(false);

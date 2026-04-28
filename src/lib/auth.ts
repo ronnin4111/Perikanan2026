@@ -22,20 +22,38 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 
 export async function login(email: string, password: string): Promise<{ user: AuthUser | null; error: string | null }> {
   try {
+    console.log('🔐 [LOGIN] Attempting login...');
+    console.log('🔐 [LOGIN] Email input:', email);
+    console.log('🔐 [LOGIN] Password input length:', password.length);
+
+    const emailToSearch = email.toLowerCase();
+    console.log('🔐 [LOGIN] Email to search:', emailToSearch);
+
     const user = await db.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { email: emailToSearch }
     });
 
+    console.log('🔐 [LOGIN] User found in DB:', !!user);
+
     if (!user) {
+      console.log('❌ [LOGIN] User not found in database');
       return { user: null, error: 'Email atau password salah' };
     }
 
+    console.log('🔐 [LOGIN] User email in DB:', user.email);
+    console.log('🔐 [LOGIN] User is active:', user.isActive);
+
     if (!user.isActive) {
+      console.log('❌ [LOGIN] User account is inactive');
       return { user: null, error: 'Akun tidak aktif' };
     }
 
+    console.log('🔐 [LOGIN] Verifying password...');
     const isValid = await verifyPassword(password, user.password);
+    console.log('🔐 [LOGIN] Password valid:', isValid);
+
     if (!isValid) {
+      console.log('❌ [LOGIN] Password verification failed');
       return { user: null, error: 'Email atau password salah' };
     }
 
@@ -43,6 +61,7 @@ export async function login(email: string, password: string): Promise<{ user: Au
     const requestHeaders = await headers();
     const ipAddress = requestHeaders.get('x-forwarded-for')?.split(',')[0] ||
                       requestHeaders.get('x-real-ip') || undefined;
+
     await logActivity(user.id, LogAction.LOGIN, null, null, null, ipAddress);
 
     // Generate JWT token
@@ -53,7 +72,7 @@ export async function login(email: string, password: string): Promise<{ user: Au
       role: user.role as 'ADMIN' | 'OPERATOR'
     });
 
-    console.log('Login successful, token generated for user:', user.email);
+    console.log('✅ [LOGIN] Login successful, token generated for user:', user.email);
 
     return {
       user: {
@@ -66,7 +85,7 @@ export async function login(email: string, password: string): Promise<{ user: Au
       error: null
     };
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ [LOGIN] Login error:', error);
     return { user: null, error: 'Terjadi kesalahan saat login' };
   }
 }
