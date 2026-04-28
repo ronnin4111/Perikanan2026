@@ -20,6 +20,7 @@ function cleanBlueApp() {
         rawData: [],
         filtered: [],
         isLoading: true,
+        isInitialized: false, // Flag to prevent double initialization
 
         // Authentication
         isAuthenticated: window.Auth ? window.Auth.isAuthenticated() : false,
@@ -166,8 +167,15 @@ function cleanBlueApp() {
 
         // Initialization
         async initApp() {
-            console.log('🚀 initApp started');
+            console.log('🚀 initApp called');
             console.log('🔐 isAuthenticated:', this.isAuthenticated);
+            console.log('📦 isInitialized:', this.isInitialized);
+
+            // Prevent double initialization
+            if (this.isInitialized) {
+                console.log('⚠️ App already initialized, skipping...');
+                return;
+            }
 
             // Check authentication
             this.isAuthenticated = window.Auth ? window.Auth.isAuthenticated() : false;
@@ -179,6 +187,7 @@ function cleanBlueApp() {
             }
 
             console.log('✅ Authenticated, proceeding with initialization');
+            this.isInitialized = true; // Mark as initialized
 
             // Start clock
             this.updateClock();
@@ -232,29 +241,39 @@ function cleanBlueApp() {
         
         // Authentication
         checkPassword() {
+            console.log('🔑 checkPassword called');
+
             if (!window.Auth) {
                 this.passwordError = 'Authentication module not loaded';
                 return;
             }
-            
+
             const password = this.passwordInput.trim();
-            
+            console.log('🔐 Validating password...');
+
             if (window.Auth.validatePassword(password)) {
+                console.log('✅ Password correct!');
+
                 this.passwordError = '';
                 window.Auth.setAuthenticated(true);
                 this.isAuthenticated = true;
-                
+
                 // Hide password gate
                 const gate = document.getElementById('passwordGate');
                 if (gate) {
+                    console.log('🎭 Hiding password gate...');
                     gate.classList.add('fadeOutDown');
                     setTimeout(() => {
                         gate.style.display = 'none';
-                        // Initialize app after authentication
-                        this.initApp();
+                        // Initialize app after authentication with $nextTick
+                        this.$nextTick(() => {
+                            console.log('🚀 Calling initApp()...');
+                            this.initApp();
+                        });
                     }, 400);
                 }
             } else {
+                console.log('❌ Password incorrect');
                 this.passwordError = 'Password salah! Silakan coba lagi.';
                 this.passwordInput = '';
                 setTimeout(() => {
@@ -263,7 +282,7 @@ function cleanBlueApp() {
                 }, 100);
             }
         },
-        
+
         // Data Loading
         async loadData() {
             console.log('🔄 Starting to load data...');
@@ -1546,45 +1565,34 @@ function cleanBlueApp() {
     };
 }
 
-// Listen for authentication event from auth.js
-let appInstance = null;
-
+// Initialize app on DOM load - handle already authenticated users
 window.addEventListener('DOMContentLoaded', function() {
-    // Store app instance for later use
-    const appElement = document.querySelector('[x-data="cleanBlueApp()"]');
-    if (appElement) {
-        // Wait for Alpine to initialize
-        const observer = new MutationObserver(() => {
-            if (appElement._x_dataStack && appElement._x_dataStack[0]) {
-                appInstance = appElement._x_dataStack[0];
-                console.log('📦 App instance stored for later use');
+    console.log('📄 DOM loaded');
 
-                // Check if already authenticated (session exists)
-                if (window.Auth && window.Auth.isAuthenticated()) {
-                    console.log('✅ User already authenticated, initializing...');
-                    appInstance.isAuthenticated = true;
-                    // Hide password gate
-                    const gate = document.getElementById('passwordGate');
-                    if (gate) gate.style.display = 'none';
-                    // Initialize app
-                    setTimeout(() => appInstance.initApp(), 100);
-                }
+    // Wait a bit for Alpine to initialize
+    setTimeout(() => {
+        if (window.Auth && window.Auth.isAuthenticated()) {
+            console.log('✅ User already authenticated from session');
 
-                observer.disconnect();
+            // Hide password gate immediately
+            const gate = document.getElementById('passwordGate');
+            if (gate) {
+                gate.style.display = 'none';
+                console.log('🎭 Password gate hidden');
             }
-        });
-        observer.observe(appElement, { childList: true, subtree: true });
-    }
-});
 
-// Listen for authentication event from auth.js (after manual login)
-window.addEventListener('authenticated', function() {
-    console.log('🔓 Authentication event received');
-
-    if (appInstance) {
-        appInstance.isAuthenticated = true;
-        setTimeout(() => {
-            appInstance.initApp();
-        }, 400);
-    }
+            // Find the app element and trigger initialization
+            const appElement = document.querySelector('[x-data="cleanBlueApp()"]');
+            if (appElement && appElement._x_dataStack) {
+                const app = appElement._x_dataStack[0];
+                if (app) {
+                    app.isAuthenticated = true;
+                    console.log('🚀 Manually calling initApp()...');
+                    app.initApp();
+                }
+            }
+        } else {
+            console.log('🔐 User not authenticated, showing password gate');
+        }
+    }, 100);
 });
