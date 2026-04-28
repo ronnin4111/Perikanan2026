@@ -68,8 +68,19 @@ export async function POST(request: NextRequest) {
     response.cookies.set('dpkpp_session', user.id, {
       httpOnly: false,
       secure: false,
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 60 * 60 * 8,
+      path: '/',
+      domain: '' // Allow cookie to work in preview environment
+    });
+    
+    console.log('Login successful, cookie set for user:', user.email);
+    console.log('Cookie details:', {
+      name: 'dpkpp_session',
+      value: user.id,
+      httpOnly: false,
+      secure: false,
+      sameSite: 'none',
       path: '/'
     });
 

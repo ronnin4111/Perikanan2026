@@ -70,7 +70,11 @@ export async function login(email: string, password: string): Promise<{ user: Au
 export async function getSession(): Promise<AuthUser | null> {
   try {
     const cookieStore = await cookies();
+    console.log('getSession - All cookies:', cookieStore.getAll());
+    
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    console.log('getSession - Looking for cookie:', SESSION_COOKIE_NAME);
+    console.log('getSession - Session ID found:', sessionId ? sessionId.substring(0, 10) + '...' : 'none');
 
     if (!sessionId) {
       return null;
@@ -83,6 +87,9 @@ export async function getSession(): Promise<AuthUser | null> {
     if (!user || !user.isActive) {
       return null;
     }
+    
+    console.log('getSession - User from DB:', user.email);
+    console.log('Session found:', user.email);
 
     return {
       id: user.id,
