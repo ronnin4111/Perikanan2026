@@ -94,21 +94,24 @@ export default function AdminDashboard() {
 
   // Check authentication on mount
   useEffect(() => {
-    const token = getToken();
-    const userData = getUser();
+    const checkAuth = () => {
+      const token = getToken();
+      const userData = getUser();
 
-    if (!token || !userData) {
-      router.push('/login');
-      return;
-    }
+      if (!token || !userData) {
+        router.push('/login');
+        return;
+      }
 
-    setUser(userData);
-    setLoading(false);
+      // Set state and fetch initial data
+      setUser(userData);
+      setLoading(false);
+      fetchUsers();
+      fetchActivityLogs();
+      fetchStats();
+    };
 
-    // Fetch initial data
-    fetchUsers();
-    fetchActivityLogs();
-    fetchStats();
+    checkAuth();
   }, []);
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -454,7 +457,8 @@ export default function AdminDashboard() {
                       </p>
                     )}
                   </div>
-                ))}
+                </div>
+              ))}
               {activityLogs.length === 0 && (
                 <p className="text-center text-slate-500 dark:text-slate-400 py-8">
                   Belum ada aktivitas tercatat

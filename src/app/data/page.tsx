@@ -63,7 +63,7 @@ export default function DataManagementPage() {
     const checkAuth = async () => {
       try {
         const currentUser = getUser();
-        
+
         if (!currentUser) {
           console.log('No user found, redirecting to login');
           router.push('/login');
@@ -73,7 +73,6 @@ export default function DataManagementPage() {
         setUser(currentUser);
         console.log('User loaded:', currentUser);
 
-        // Fetch data
         fetchData();
       } catch (err) {
         console.error('Error checking auth:', err);
@@ -102,6 +101,7 @@ export default function DataManagementPage() {
       const response = await authenticatedFetch(`/api/pelaku-usaha/${editingData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(editingData)
       });
 
@@ -261,20 +261,17 @@ export default function DataManagementPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Jenis Usaha
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Produksi
-                  </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Updated
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-s slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Aksi
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-600">
                 {data.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                     <td className="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">
                       {item.nama}
                     </td>
@@ -287,10 +284,10 @@ export default function DataManagementPage() {
                     <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                       {item.desa || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-s600 dark:text-slate-400">
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                       {item.jenisUsaha || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                       {item.wadahBudidaya ? `${item.wadahBudidaya} m²` : '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
@@ -314,7 +311,7 @@ export default function DataManagementPage() {
                     <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                       {item.kusukaKelompok ? `${item.kusukaKelompok}` : '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <td className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       {formatDate(item.updatedAt)}
                     </td>
                     <td className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -346,7 +343,7 @@ export default function DataManagementPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-4 gap-3">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
@@ -360,19 +357,9 @@ export default function DataManagementPage() {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Selanjutnya
-              </button>
-              <span className="px-4 text-slate-600 dark:text-slate-400">
-                Halaman {page} dari {totalPages}
-              </span>
-              <button
-                onClick={() => setPage(totalPages)}
-                disabled={page === totalPages}
-                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Akhir
               </button>
             </div>
           )}
@@ -382,9 +369,9 @@ export default function DataManagementPage() {
       {/* Edit Modal */}
       {showEditModal && editingData && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                 Edit Data Pelaku Usaha
               </h3>
               <button
@@ -394,21 +381,21 @@ export default function DataManagementPage() {
                 ✕
               </button>
             </div>
-          </div>
 
-          <form onSubmit={handleSaveEdit} className="space-y-4">
-            <div>
-              <label htmlFor="edit-nama" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Nama
-              </label>
-              <input
-                id="edit-nama"
-                type="text"
-                value={editingData.nama}
-                onChange={(e) => setEditingData({ ...editingData, nama: e.target.value })}
-                className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                required
-              />
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label htmlFor="edit-nama" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Nama
+                </label>
+                <input
+                  id="edit-nama"
+                  type="text"
+                  value={editingData.nama}
+                  onChange={(e) => setEditingData({ ...editingData, nama: e.target.value })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  required
+                />
+              </div>
 
               <div>
                 <label htmlFor="edit-kelompok" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -433,12 +420,12 @@ export default function DataManagementPage() {
                   value={editingData.kecamatan}
                   onChange={(e) => setEditingData({ ...editingData, kecamatan: e.target.value })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                required
+                  required
                 />
               </div>
 
               <div>
-                <label htmlFor="edit-desa" className="block text-sm font medium text-slate-700 dark:text-slate-300 mb-2">
+                <label htmlFor="edit-desa" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Desa
                 </label>
                 <input
@@ -472,8 +459,7 @@ export default function DataManagementPage() {
                   type="text"
                   value={editingData.wadahBudidaya || ''}
                   onChange={(e) => setEditingData({ ...editingData, wadahBudidaya: e.target.value })}
-                  className="w-full px-4 py-3 border-slate-300 dark:border-sale-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  required
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
               </div>
 
@@ -485,7 +471,7 @@ export default function DataManagementPage() {
                   id="edit-kolam"
                   type="number"
                   value={editingData.kolam || ''}
-                  onChange={(e) => setEditingData({ ...editingData, kolam: parseInt(e.target.value) || 0)}
+                  onChange={(e) => setEditingData({ ...editingData, kolam: parseInt(e.target.value) || 0 })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
               </div>
@@ -498,7 +484,7 @@ export default function DataManagementPage() {
                   id="edit-lahan"
                   type="text"
                   value={editingData.lahan || ''}
-                  onChange={(e) => setEditingData({ ...editingData, lahan: parseFloat(e.target.value) || null)}
+                  onChange={(e) => setEditingData({ ...editingData, lahan: parseFloat(e.target.value) || null })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
               </div>
@@ -511,11 +497,11 @@ export default function DataManagementPage() {
                   id="edit-produksi"
                   type="number"
                   value={editingData.produksi || ''}
-                  onChange={(e) => setEditingData({ ...editingData, produksi: parseFloat(e.target.value) || 0)}
+                  onChange={(e) => setEditingData({ ...editingData, produksi: parseFloat(e.target.value) || 0 })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                   required
                 />
-                </div>
+              </div>
 
               <div>
                 <label htmlFor="edit-lat" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -525,7 +511,7 @@ export default function DataManagementPage() {
                   id="edit-lat"
                   type="text"
                   value={editingData.lat || ''}
-                  onChange={(e) => setEditingData({ ...editingData, lat: parseFloat(e.target.value) || null)}
+                  onChange={(e) => setEditingData({ ...editingData, lat: parseFloat(e.target.value) || null })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
               </div>
@@ -538,8 +524,8 @@ export default function DataManagementPage() {
                   id="edit-lng"
                   type="text"
                   value={editingData.lng || ''}
-                  onChange={(e) => setEditingData({ ...editingData, lng: parseFloat(e.target.value) || null)}
-                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-per-1000 dark:bg-slate-700 text-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  onChange={(e) => setEditingData({ ...editingData, lng: parseFloat(e.target.value) || null })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
               </div>
 
@@ -550,7 +536,7 @@ export default function DataManagementPage() {
                 <select
                   id="edit-cbib"
                   value={editingData.cbib ? '1' : '0'}
-                  onChange={(e) => setEditingData({ ...editingData, cbib: parseInt(e.target.value) ? 1 : 0})}
+                  onChange={(e) => setEditingData({ ...editingData, cbib: parseInt(e.target.value) ? 1 : 0 })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 >
                   <option value="0">Tidak</option>
@@ -566,91 +552,64 @@ export default function DataManagementPage() {
                   id="edit-kusukaKelompok"
                   type="number"
                   value={editingData.kusukaKelompok || ''}
-                  onChange={(e) => setEditingData({ ...editingData, kusukaKelompok: parseInt(e.target.value) || 0})}
-                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-sale-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="edit-cbib" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Nomor CBIB
-                </label>
-                <input
-                  id="edit-cbib"
-                  type="number"
-                  value={editingData.cbib || 0}
-                  onChange={(e) => setEditingData({ ...editingData, cbib: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setEditingData({ ...editingData, kusukaKelompok: parseInt(e.target.value) || 0 })}
                   className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  required
                 />
               </div>
 
-              <div>
-                <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  type="submit"
-                  className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    Simpan Perubahan
-                  </button>
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                  >
-                    Batal
-                  </button>
-                </div>
+                  className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Simpan Perubahan
+                </button>
               </div>
             </form>
           </div>
+        </div>
+      )}
 
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setShowEditModal(false)}
-              className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                Konfirmasi Hapus
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
               >
-              Tutup
+                Batal
               </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Hapus
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  {/* Delete Confirmation Modal */}
-  {showDeleteModal && (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">⚠️</span>
-          </div>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-            Konfirmasi Hapus
-          </h3>
-          <p className="text-stext-slate-600 dark:text-slate-400">
-            Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
-          </p>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={() => setShowDeleteModal(false)}
-            className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-            >
-            Batal
-            </button>
-          <button
-            onClick={handleConfirmDelete}
-            className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-            >
-              Hapus
-            </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
