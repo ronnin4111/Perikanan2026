@@ -4,11 +4,10 @@ import { requireAuth, logActivity, getUserIP } from '@/lib/auth';
 import { PelakuUsaha, LogAction } from '@prisma/client';
 import { isSheetConfigured, addToSheet } from '@/lib/google-sheets';
 
-// GET - List all pelaku usaha
+// GET - List all pelaku usaha (public access)
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireAuth();
-
+    // Public access - no authentication required for GET
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -48,12 +47,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('GET pelaku-usaha error:', error);
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
     return NextResponse.json(
       { error: 'Terjadi kesalahan' },
       { status: 500 }

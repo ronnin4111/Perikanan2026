@@ -153,7 +153,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-3xl font-bold text-slate-900 dark:text-white">
-              {Array.from(new Set(data.map((item: any) => item.kelompok).filter(Boolean)).length}
+              {Array.from(new Set(data.map((item: any) => item.kelompok).filter(Boolean))).length}
             </p>
           </div>
         </div>
