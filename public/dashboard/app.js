@@ -94,6 +94,7 @@ function cleanBlueApp() {
         sortDir: 'asc',
         currentPage: 1,
         pageSize: 15,
+        expandedRows: [],
         
         // Map
         map: null,
@@ -515,6 +516,137 @@ function cleanBlueApp() {
                 this.sortKey = key;
                 this.sortDir = 'asc';
             }
+        },
+        
+        // Row Expansion
+        toggleRowExpand(rowIndex, row) {
+            const index = this.expandedRows.indexOf(rowIndex);
+            if (index === -1) {
+                this.expandedRows.push(rowIndex);
+            } else {
+                this.expandedRows.splice(index, 1);
+            }
+        },
+        
+        // Filter Chips Functions
+        hasActiveFilters() {
+            return this.searchQuery !== '' ||
+                   this.selected.kecamatan.length > 0 ||
+                   this.selected.desa.length > 0 ||
+                   this.selected.kelompok.length > 0 ||
+                   this.selected.jenis_usaha.length > 0 ||
+                   this.selected.wadah_budidaya.length > 0 ||
+                   this.selected.jenis_ikan.length > 0 ||
+                   this.cbibFilter !== 'semua';
+        },
+        
+        activeFilterList() {
+            const filters = {};
+            
+            if (this.searchQuery) {
+                filters['search'] = { label: `Search: "${this.searchQuery}"` };
+            }
+            if (this.selected.kecamatan.length > 0) {
+                filters['kecamatan'] = { label: `Kecamatan: ${this.selected.kecamatan.join(', ')}` };
+            }
+            if (this.selected.desa.length > 0) {
+                filters['desa'] = { label: `Desa: ${this.selected.desa.join(', ')}` };
+            }
+            if (this.selected.kelompok.length > 0) {
+                filters['kelompok'] = { label: `Kelompok: ${this.selected.kelompok.join(', ')}` };
+            }
+            if (this.selected.jenis_usaha.length > 0) {
+                filters['jenis_usaha'] = { label: `Usaha: ${this.selected.jenis_usaha.join(', ')}` };
+            }
+            if (this.selected.wadah_budidaya.length > 0) {
+                filters['wadah'] = { label: `Wadah: ${this.selected.wadah_budidaya.join(', ')}` };
+            }
+            if (this.selected.jenis_ikan.length > 0) {
+                filters['ikan'] = { label: `Ikan: ${this.selected.jenis_ikan.join(', ')}` };
+            }
+            if (this.cbibFilter !== 'semua') {
+                filters['cbib'] = { label: `CBIB: ${this.cbibFilter === 'ya' ? 'Ya' : 'Tidak'}` };
+            }
+            
+            return filters;
+        },
+        
+        removeFilter(key) {
+            switch (key) {
+                case 'search':
+                    this.searchQuery = '';
+                    break;
+                case 'kecamatan':
+                    this.selected.kecamatan = [];
+                    break;
+                case 'desa':
+                    this.selected.desa = [];
+                    break;
+                case 'kelompok':
+                    this.selected.kelompok = [];
+                    break;
+                case 'jenis_usaha':
+                    this.selected.jenis_usaha = [];
+                    break;
+                case 'wadah':
+                    this.selected.wadah_budidaya = [];
+                    break;
+                case 'ikan':
+                    this.selected.jenis_ikan = [];
+                    break;
+                case 'cbib':
+                    this.cbibFilter = 'semua';
+                    break;
+            }
+            this.applyFilters();
+        },
+        
+        // Mobile Navigation
+        scrollToSection(sectionId) {
+            this.$nextTick(() => {
+                let element;
+                switch (sectionId) {
+                    case 'dashboard':
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        break;
+                    case 'map':
+                        element = document.getElementById('map');
+                        if (element) {
+                            const offset = 120; // Account for header
+                            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                            window.scrollTo({
+                                top: elementPosition - offset,
+                                behavior: 'smooth'
+                            });
+                        }
+                        break;
+                    case 'table':
+                        // Find the table section and scroll to it
+                        const tableSection = document.querySelector('[class*="table-container"]');
+                        if (tableSection) {
+                            const offset = 120;
+                            const elementPosition = tableSection.getBoundingClientRect().top + window.pageYOffset;
+                            window.scrollTo({
+                                top: elementPosition - offset,
+                                behavior: 'smooth'
+                            });
+                        }
+                        break;
+                    case 'export':
+                        // Find the export buttons in sidebar
+                        if (this.sidebarOpen) {
+                            // Sidebar is already open
+                            const exportButtons = document.querySelector('button[onclick*="exportToExcel"]');
+                            if (exportButtons) {
+                                exportButtons.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        } else {
+                            // Open sidebar first
+                            this.sidebarOpen = true;
+                        }
+                        break;
+                }
+            });
         },
         
         // Dark Mode
