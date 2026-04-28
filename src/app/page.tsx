@@ -50,7 +50,7 @@ export default function Home() {
         </p>
 
         <Link
-          href="/dashboard/index.html"
+          href="/dashboard"
           style={{
             display: 'inline-block',
             padding: '0.75rem 2rem',
