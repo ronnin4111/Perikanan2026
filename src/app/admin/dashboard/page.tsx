@@ -98,11 +98,17 @@ export default function AdminDashboard() {
       const token = getToken();
       const userData = getUser();
 
+      console.log('🔍 Admin Dashboard - Checking auth...');
+      console.log('🔍 Token exists:', !!token);
+      console.log('🔍 User data:', userData);
+
       if (!token || !userData) {
+        console.log('⚠️ No auth found, redirecting to login...');
         router.push('/login');
         return;
       }
 
+      console.log('✅ Auth found, loading dashboard...');
       // Set state and fetch initial data
       setUser(userData);
       setLoading(false);

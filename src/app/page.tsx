@@ -109,7 +109,8 @@ export default function Home() {
           fontSize: '0.875rem',
           color: '#94a3b8'
         }}>
-          <p>Default Password: <strong>dpkpp123</strong></p>
+          <p>Admin Email: <strong>admin@dpkpp.go.id</strong></p>
+          <p>Admin Password: <strong>admin123</strong></p>
         </div>
       </div>
     </div>
