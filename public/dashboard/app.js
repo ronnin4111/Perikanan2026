@@ -251,27 +251,32 @@ function cleanBlueApp() {
             try {
                 const csvUrl = './sample-data.csv';
                 const response = await fetch(csvUrl);
-                
+
                 if (!response.ok) {
                     throw new Error(`Failed to load CSV: ${response.status}`);
                 }
-                
+
                 const csvText = await response.text();
-                
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        this.rawData = results.data.map(row => this.parseCSVRow(row));
-                        this.filtered = [...this.rawData];
-                        this.populateFilters();
-                    },
-                    error: (error) => {
-                        console.error('CSV parsing error:', error);
-                        alert('Gagal memuat data. Silakan coba lagi.');
-                    }
+
+                // Wrap Papa.parse in Promise to properly await it
+                await new Promise((resolve, reject) => {
+                    Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                            this.rawData = results.data.map(row => this.parseCSVRow(row));
+                            this.filtered = [...this.rawData];
+                            this.populateFilters();
+                            resolve(results);
+                        },
+                        error: (error) => {
+                            console.error('CSV parsing error:', error);
+                            alert('Gagal memuat data. Silakan coba lagi.');
+                            reject(error);
+                        }
+                    });
                 });
-                
+
             } catch (error) {
                 console.error('Error loading data:', error);
                 // Generate sample data if CSV fails
