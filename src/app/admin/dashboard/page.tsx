@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authenticatedFetch, getUser, clearAuth } from '@/lib/auth-client';
+import { authenticatedFetch, getUser, clearAuth, getToken } from '@/lib/auth-client';
 
 interface User {
   id: string;
@@ -91,6 +91,25 @@ export default function AdminDashboard() {
       console.error('Error fetching stats:', err);
     }
   };
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = getToken();
+    const userData = getUser();
+
+    if (!token || !userData) {
+      router.push('/login');
+      return;
+    }
+
+    setUser(userData);
+    setLoading(false);
+
+    // Fetch initial data
+    fetchUsers();
+    fetchActivityLogs();
+    fetchStats();
+  }, []);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();

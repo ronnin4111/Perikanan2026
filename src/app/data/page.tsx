@@ -368,15 +368,11 @@ export default function DataManagementPage() {
                 Halaman {page} dari {totalPages}
               </span>
               <button
-                onClick={() => setPage(Math.min(totalPages, page - 1))}
+                onClick={() => setPage(totalPages)}
                 disabled={page === totalPages}
                 className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                →
-              </button>
-              <span className="px-4 text-slate-600 dark:text-slate-400">
                 Akhir
-              </span>
               </button>
             </div>
           )}
