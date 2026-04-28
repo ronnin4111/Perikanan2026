@@ -437,6 +437,51 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
+
+        /* Fix Leaflet Map z-index - prevent map from being always on top */
+        #map {
+            position: relative;
+            z-index: 1 !important;
+        }
+
+        .leaflet-pane {
+            z-index: 1 !important;
+        }
+
+        .leaflet-map-pane {
+            z-index: 1 !important;
+        }
+
+        .leaflet-tile-pane {
+            z-index: 2 !important;
+        }
+
+        .leaflet-overlay-pane {
+            z-index: 3 !important;
+        }
+
+        .leaflet-shadow-pane {
+            z-index: 4 !important;
+        }
+
+        .leaflet-marker-pane {
+            z-index: 5 !important;
+        }
+
+        .leaflet-tooltip-pane {
+            z-index: 6 !important;
+        }
+
+        .leaflet-popup-pane {
+            z-index: 7 !important;
+        }
+
+        /* Marker cluster */
+        .leaflet-marker-icon,
+        .leaflet-marker-shadow,
+        .leaflet-cluster-icon {
+            z-index: 5 !important;
+        }
     </style>
 </head>
 <body :class="{ 'dark': darkMode }" class="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
@@ -684,7 +729,7 @@
                                     <span class="text-slate-400">▼</span>
                                 </button>
                                 <div x-show="open" @click.outside="open = false" x-transition
-                                     class="absolute z-10 w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="custom-dropdown z-25 absolute w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                     <div class="p-2">
                                         <template x-for="option in filtersDef.kecamatan" :key="option">
                                             <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded cursor-pointer">
@@ -704,7 +749,7 @@
                                     <span class="text-slate-400">▼</span>
                                 </button>
                                 <div x-show="open" @click.outside="open = false" x-transition
-                                     class="absolute z-10 w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="custom-dropdown z-25 absolute w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                     <div class="p-2">
                                         <template x-for="option in filtersDef.desa" :key="option">
                                             <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded cursor-pointer">
@@ -724,7 +769,7 @@
                                     <span class="text-slate-400">▼</span>
                                 </button>
                                 <div x-show="open" @click.outside="open = false" x-transition
-                                     class="absolute z-10 w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="custom-dropdown z-25 absolute w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                     <div class="p-2">
                                         <template x-for="option in filtersDef.kelompok" :key="option">
                                             <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded cursor-pointer">
@@ -744,7 +789,7 @@
                                     <span class="text-slate-400">▼</span>
                                 </button>
                                 <div x-show="open" @click.outside="open = false" x-transition
-                                     class="absolute z-10 w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="custom-dropdown z-25 absolute w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                     <div class="p-2">
                                         <template x-for="option in filtersDef.jenis_usaha" :key="option">
                                             <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded cursor-pointer">
@@ -764,7 +809,7 @@
                                     <span class="text-slate-400">▼</span>
                                 </button>
                                 <div x-show="open" @click.outside="open = false" x-transition
-                                     class="absolute z-10 w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="custom-dropdown z-25 absolute w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                     <div class="p-2">
                                         <template x-for="option in filtersDef.wadah_budidaya" :key="option">
                                             <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded cursor-pointer">
@@ -784,7 +829,7 @@
                                     <span class="text-slate-400">▼</span>
                                 </button>
                                 <div x-show="open" @click.outside="open = false" x-transition
-                                     class="absolute z-10 w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="custom-dropdown z-25 absolute w-64 mt-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                     <div class="p-2">
                                         <template x-for="option in filtersDef.jenis_ikan" :key="option">
                                             <label class="flex items-center gap-2 px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded cursor-pointer">
@@ -1131,8 +1176,8 @@
         </footer>
     </div>
 
-    <!-- Load Scripts - Using new versions to bypass cache -->
+    <!-- Load Scripts - Using v3 to force reload -->
     <script src="auth-v2.js"></script>
-    <script src="app-v2.js"></script>
+    <script src="app-v3.js"></script>
 </body>
 </html>
