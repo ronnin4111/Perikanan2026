@@ -20,32 +20,32 @@ function cleanBlueApp() {
         rawData: [],
         filtered: [],
         isLoading: true,
-        
+
         // Authentication
         isAuthenticated: window.Auth ? window.Auth.isAuthenticated() : false,
         passwordInput: '',
         passwordError: '',
-        
+
         // UI State
         darkMode: localStorage.getItem('darkMode') === 'true',
         sidebarOpen: false,
         filterOpen: true,
         showMapLegend: true,
-        
+
         // Clock
         currentTime: '',
-        
+
         // Chart State
         chartType: 'pie', // 'pie' | 'bar'
         chartFilter: '',
         kecChartMode: 'pelaku_usaha',
         kecChartTitle: 'Pelaku Usaha per Kecamatan',
         kecChartHeight: 300,
-        
+
         // Chart References
         distributionChart: null,
         kecamatanChart: null,
-        
+
         // Filter State
         searchQuery: '',
         selected: {
@@ -66,7 +66,7 @@ function cleanBlueApp() {
         },
         cbibFilter: 'semua',
         mapFilter: '',
-        
+
         // Kecamatan Chart Modes
         kecChartModes: [
             { key: 'pelaku_usaha', label: '👤 Pelaku Usaha' },
@@ -76,7 +76,7 @@ function cleanBlueApp() {
             { key: 'jenis_ikan', label: '🐟 Jenis Ikan' },
             { key: 'produksi', label: '⚖️ Produksi' }
         ],
-        
+
         // Table Configuration
         tableColumns: [
             { key: 'no', label: 'No' },
@@ -95,11 +95,11 @@ function cleanBlueApp() {
         currentPage: 1,
         pageSize: 15,
         expandedRows: [],
-        
+
         // Map
         map: null,
         markerCluster: null,
-        
+
         // Jenis Usaha Colors
         jenisUsahaColors: {
             'Pembenihan': '#3B82F6',
@@ -108,36 +108,36 @@ function cleanBlueApp() {
             'Pembesaran & Pembenihan Pakan Alami': '#F59E0B',
             'default': '#6366f1'
         },
-        
+
         // Computed Properties
         get totalPages() {
             return Math.ceil(this.filtered.length / this.pageSize) || 1;
         },
-        
+
         get paginatedData() {
             const start = (this.currentPage - 1) * this.pageSize;
             const end = start + this.pageSize;
             return this.sortedData.slice(start, end);
         },
-        
+
         get sortedData() {
             if (!this.sortKey || this.sortKey === 'no') {
                 return this.filtered;
             }
-            
+
             return [...this.filtered].sort((a, b) => {
                 let valA = a[this.sortKey];
                 let valB = b[this.sortKey];
-                
+
                 // Handle numeric values
                 if (typeof valA === 'number' && typeof valB === 'number') {
                     return this.sortDir === 'asc' ? valA - valB : valB - valA;
                 }
-                
+
                 // Handle string values
                 valA = String(valA || '').toLowerCase();
                 valB = String(valB || '').toLowerCase();
-                
+
                 if (this.sortDir === 'asc') {
                     return valA.localeCompare(valB);
                 } else {
@@ -145,58 +145,76 @@ function cleanBlueApp() {
                 }
             });
         },
-        
+
         get visiblePages() {
             const pages = [];
             const maxVisible = 5;
             let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
             let endPage = startPage + maxVisible - 1;
-            
+
             if (endPage > this.totalPages) {
                 endPage = this.totalPages;
                 startPage = Math.max(1, endPage - maxVisible + 1);
             }
-            
+
             for (let i = startPage; i <= endPage; i++) {
                 pages.push(i);
             }
-            
+
             return pages;
         },
-        
+
         // Initialization
         async initApp() {
+            console.log('🚀 initApp started');
+            console.log('🔐 isAuthenticated:', this.isAuthenticated);
+
             // Check authentication
             this.isAuthenticated = window.Auth ? window.Auth.isAuthenticated() : false;
-            
+
             if (!this.isAuthenticated) {
+                console.log('❌ Not authenticated, skipping initialization');
                 this.isLoading = false;
                 return;
             }
-            
+
+            console.log('✅ Authenticated, proceeding with initialization');
+
             // Start clock
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
-            
+
             // Load data
+            console.log('📦 Calling loadData()...');
             await this.loadData();
-            
+            console.log('📊 Data loaded:', this.rawData.length, 'records');
+
             // Initialize UI after data is loaded
             this.$nextTick(() => {
+                console.log('🎨 Initializing UI components...');
                 setTimeout(() => {
+                    console.log('🗺️ Initializing map...');
                     this.initMap();
+
+                    console.log('📈 Updating distribution chart...');
                     this.updateDistributionChart();
+
+                    console.log('📊 Updating kecamatan chart...');
                     this.updateKecamatanChart();
+
+                    console.log('✅ Setting isLoading = false');
                     this.isLoading = false;
+
+                    console.log('🎉 App initialization complete!');
                 }, 350);
             });
-            
+
             // Watch dark mode changes
             this.$watch('darkMode', (value) => {
                 localStorage.setItem('darkMode', value);
                 this.updateChartsForDarkMode();
             });
-            
+
             // Watch search query
             this.$watch('searchQuery', () => {
                 this.currentPage = 1;
@@ -248,15 +266,23 @@ function cleanBlueApp() {
         
         // Data Loading
         async loadData() {
+            console.log('🔄 Starting to load data...');
+
             try {
                 const csvUrl = './sample-data.csv';
+                console.log('📥 Fetching CSV from:', csvUrl);
+
                 const response = await fetch(csvUrl);
 
                 if (!response.ok) {
+                    console.error('❌ Failed to load CSV:', response.status, response.statusText);
                     throw new Error(`Failed to load CSV: ${response.status}`);
                 }
 
+                console.log('✓ CSV fetched successfully');
+
                 const csvText = await response.text();
+                console.log('📄 CSV text length:', csvText.length, 'characters');
 
                 // Wrap Papa.parse in Promise to properly await it
                 await new Promise((resolve, reject) => {
@@ -264,24 +290,35 @@ function cleanBlueApp() {
                         header: true,
                         skipEmptyLines: true,
                         complete: (results) => {
+                            console.log('✓ CSV parsed successfully');
+                            console.log('📊 Rows parsed:', results.data.length);
+
                             this.rawData = results.data.map(row => this.parseCSVRow(row));
+                            console.log('✓ Data mapped:', this.rawData.length, 'records');
+
                             this.filtered = [...this.rawData];
+                            console.log('✓ Filters populated');
+
                             this.populateFilters();
+                            console.log('✓ All data loaded successfully!');
+
                             resolve(results);
                         },
                         error: (error) => {
-                            console.error('CSV parsing error:', error);
-                            alert('Gagal memuat data. Silakan coba lagi.');
+                            console.error('❌ CSV parsing error:', error);
                             reject(error);
                         }
                     });
                 });
 
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('❌ Error loading data, using sample data:', error);
                 // Generate sample data if CSV fails
                 this.generateSampleData();
+                console.log('✓ Sample data generated');
             }
+
+            console.log('✅ loadData completed');
         },
         
         parseCSVRow(row) {
@@ -1503,8 +1540,51 @@ function cleanBlueApp() {
             if (this.cbibFilter !== 'semua') {
                 filters.push(`CBIB: ${this.cbibFilter === 'ya' ? 'Ya' : 'Tidak'}`);
             }
-            
+
             return filters;
         }
     };
 }
+
+// Listen for authentication event from auth.js
+let appInstance = null;
+
+window.addEventListener('DOMContentLoaded', function() {
+    // Store app instance for later use
+    const appElement = document.querySelector('[x-data="cleanBlueApp()"]');
+    if (appElement) {
+        // Wait for Alpine to initialize
+        const observer = new MutationObserver(() => {
+            if (appElement._x_dataStack && appElement._x_dataStack[0]) {
+                appInstance = appElement._x_dataStack[0];
+                console.log('📦 App instance stored for later use');
+
+                // Check if already authenticated (session exists)
+                if (window.Auth && window.Auth.isAuthenticated()) {
+                    console.log('✅ User already authenticated, initializing...');
+                    appInstance.isAuthenticated = true;
+                    // Hide password gate
+                    const gate = document.getElementById('passwordGate');
+                    if (gate) gate.style.display = 'none';
+                    // Initialize app
+                    setTimeout(() => appInstance.initApp(), 100);
+                }
+
+                observer.disconnect();
+            }
+        });
+        observer.observe(appElement, { childList: true, subtree: true });
+    }
+});
+
+// Listen for authentication event from auth.js (after manual login)
+window.addEventListener('authenticated', function() {
+    console.log('🔓 Authentication event received');
+
+    if (appInstance) {
+        appInstance.isAuthenticated = true;
+        setTimeout(() => {
+            appInstance.initApp();
+        }, 400);
+    }
+});
