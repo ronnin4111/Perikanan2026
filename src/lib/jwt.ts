@@ -12,11 +12,11 @@ export interface TokenPayload {
 }
 
 export async function generateToken(payload: TokenPayload): Promise<string> {
-  const token = await new SignJWT(JWT_SECRET)
+  const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('8h')
-    .sign(payload);
+    .sign(JWT_SECRET);
 
   return token;
 }
