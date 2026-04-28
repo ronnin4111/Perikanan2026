@@ -16,17 +16,62 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
+  name      String
+  role      UserRole  @default(OPERATOR)
+  password  String
+  isActive  Boolean   @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  activities ActivityLog[]
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ActivityLog {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      LogAction
+  entity      String?       // ID dari entity yang diubah
+  entityType  String?       // "PELAKUUSAHA"
+  oldValues   String?       // JSON string dari nilai lama
+  newValues   String?       // JSON string dari nilai baru
+  ipAddress   String?
+  createdAt   DateTime      @default(now())
+}
+
+model PelakuUsaha {
+  id               String    @id @default(cuid())
+  nama             String
+  kelompok         String?
+  kecamatan        String
+  desa             String?
+  jenisUsaha       String?
+  wadahBudidaya    String?
+  jenisIkan        String?
+  kolam            Int       @default(0)
+  lahan            Float     @default(0)
+  produksi         Float     @default(0)
+  lat              Float?
+  lng              Float?
+  cbib             Int       @default(0)
+  kusukaKelompok   Int       @default(0)
+  googleSheetRowId String?   @unique // Row ID di Google Sheets
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([kecamatan])
+  @@index([kelompok])
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+enum LogAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
 }
