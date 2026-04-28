@@ -5,55 +5,26 @@ import { requireAdmin } from '@/lib/auth';
 // GET - List all activity logs (Admin only)
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireAdmin();
+    const admin = await requireAdmin();
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
-    const userId = searchParams.get('userId') || undefined;
-    const action = searchParams.get('action') || undefined;
 
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (userId) {
-      where.userId = userId;
-    }
-
-    if (action) {
-      where.action = action;
-    }
-
-    const [activities, total] = await Promise.all([
-      db.activityLog.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true
-            }
+    const logs = await db.activityLog.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
           }
         }
-      }),
-      db.activityLog.count({ where })
-    ]);
-
-    return NextResponse.json({
-      data: activities,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit
     });
+
+    return NextResponse.json({ logs });
   } catch (error: any) {
     console.error('GET admin/activity error:', error);
     if (error.message.includes('Forbidden') || error.message.includes('Unauthorized')) {

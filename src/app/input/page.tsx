@@ -165,6 +165,9 @@ export default function InputDataPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <a href="/data" className="text-sm text-purple-600 dark:text-purple-400 hover:underline">
+                Kelola Data
+              </a>
               <a href="/dashboard" className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
                 Dashboard Publik
               </a>
@@ -362,7 +365,6 @@ export default function InputDataPage() {
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
                 placeholder="0"
                 min="0"
-                step="0.01"
                 disabled={submitting}
               />
             </div>
@@ -381,7 +383,6 @@ export default function InputDataPage() {
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
                 placeholder="0"
                 min="0"
-                step="0.01"
                 disabled={submitting}
               />
             </div>

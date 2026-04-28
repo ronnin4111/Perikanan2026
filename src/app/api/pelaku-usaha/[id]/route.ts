@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth, requireAdmin, logActivity, getUserIP, LogAction } from '@/lib/auth';
+import { isSheetConfigured, updateSheet, deleteFromSheet, findRowNumberById } from '@/lib/google-sheets';
 
 // GET - Get single pelaku usaha by ID
 export async function GET(
@@ -91,6 +92,41 @@ export async function PUT(
       ipAddress
     );
 
+    // Sync with Google Sheets if configured
+    if (isSheetConfigured() && updatedData.googleSheetRowId) {
+      try {
+        const rowNumber = await findRowNumberById(updatedData.googleSheetRowId);
+        if (rowNumber !== null) {
+          await updateSheet(
+            {
+              id: updatedData.googleSheetRowId,
+              nama: updatedData.nama,
+              kelompok: updatedData.kelompok || '',
+              kecamatan: updatedData.kecamatan,
+              desa: updatedData.desa || '',
+              jenisUsaha: updatedData.jenisUsaha || '',
+              wadahBudidaya: updatedData.wadahBudidaya || '',
+              jenisIkan: updatedData.jenisIkan || '',
+              kolam: updatedData.kolam,
+              lahan: updatedData.lahan,
+              produksi: updatedData.produksi,
+              lat: updatedData.lat || 0,
+              lng: updatedData.lng || 0,
+              cbib: updatedData.cbib,
+              kusukaKelompok: updatedData.kusukaKelompok,
+              createdBy: user.email,
+              createdAt: updatedData.createdAt.toISOString(),
+              updatedAt: updatedData.updatedAt.toISOString()
+            },
+            rowNumber
+          );
+        }
+      } catch (sheetError: any) {
+        console.error('Google Sheets sync error:', sheetError);
+        // Don't fail the request if sheet sync fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: updatedData
@@ -146,6 +182,19 @@ export async function DELETE(
       null,
       ipAddress
     );
+
+    // Sync with Google Sheets if configured
+    if (isSheetConfigured() && existing.googleSheetRowId) {
+      try {
+        const rowNumber = await findRowNumberById(existing.googleSheetRowId);
+        if (rowNumber !== null) {
+          await deleteFromSheet(rowNumber);
+        }
+      } catch (sheetError: any) {
+        console.error('Google Sheets sync error:', sheetError);
+        // Don't fail the request if sheet sync fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

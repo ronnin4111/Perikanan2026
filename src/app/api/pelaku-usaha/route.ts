@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth, logActivity, getUserIP, LogAction } from '@/lib/auth';
 import { PelakuUsaha } from '@prisma/client';
+import { isSheetConfigured, addToSheet } from '@/lib/google-sheets';
 
 // GET - List all pelaku usaha
 export async function GET(request: NextRequest) {
@@ -107,6 +108,43 @@ export async function POST(request: NextRequest) {
       JSON.stringify(newData),
       ipAddress
     );
+
+    // Sync with Google Sheets if configured
+    if (isSheetConfigured()) {
+      try {
+        await addToSheet(
+          {
+            nama: newData.nama,
+            kelompok: newData.kelompok || '',
+            kecamatan: newData.kecamatan,
+            desa: newData.desa || '',
+            jenisUsaha: newData.jenisUsaha || '',
+            wadahBudidaya: newData.wadahBudidaya || '',
+            jenisIkan: newData.jenisIkan || '',
+            kolam: newData.kolam,
+            lahan: newData.lahan,
+            produksi: newData.produksi,
+            lat: newData.lat || 0,
+            lng: newData.lng || 0,
+            cbib: newData.cbib,
+            kusukaKelompok: newData.kusukaKelompok,
+            createdBy: user.email,
+            createdAt: newData.createdAt.toISOString(),
+            updatedAt: newData.updatedAt.toISOString()
+          },
+          newData.id
+        );
+
+        // Update Google Sheet row ID
+        await db.pelakuUsaha.update({
+          where: { id: newData.id },
+          data: { googleSheetRowId: newData.id }
+        });
+      } catch (sheetError: any) {
+        console.error('Google Sheets sync error:', sheetError);
+        // Don't fail the request if sheet sync fails
+      }
+    }
 
     return NextResponse.json({
       success: true,
