@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPassword } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { LogAction } from '@prisma/client';
+import { login } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,76 +13,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await db.user.findUnique({
-      where: { email: email.toLowerCase() }
-    });
+    const result = await login(email, password);
 
-    if (!user) {
+    if (result.error) {
       return NextResponse.json(
-        { error: 'Email atau password salah' },
+        { error: result.error },
         { status: 401 }
       );
     }
 
-    if (!user.isActive) {
-      return NextResponse.json(
-        { error: 'Akun tidak aktif' },
-        { status: 401 }
-      );
-    }
-
-    const isValid = await verifyPassword(password, user.password);
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Email atau password salah' },
-        { status: 401 }
-      );
-    }
-
-    // Log login activity
-    await db.activityLog.create({
-      data: {
-        userId: user.id,
-        action: LogAction.LOGIN,
-        entity: null,
-        entityType: null,
-        oldValues: null,
-        newValues: null
-      }
-    });
-
-    // Create response with user data
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role as 'ADMIN' | 'OPERATOR'
-      }
+      user: result.user,
+      token: result.user.token
     });
-
-    // Set session cookie
-    response.cookies.set('dpkpp_session', user.id, {
-      httpOnly: false,
-      secure: false,
-      sameSite: 'none',
-      maxAge: 60 * 60 * 8,
-      path: '/',
-      domain: '' // Allow cookie to work in preview environment
-    });
-    
-    console.log('Login successful, cookie set for user:', user.email);
-    console.log('Cookie details:', {
-      name: 'dpkpp_session',
-      value: user.id,
-      httpOnly: false,
-      secure: false,
-      sameSite: 'none',
-      path: '/'
-    });
-
-    return response;
   } catch (error) {
     console.error('Login API error:', error);
     return NextResponse.json(

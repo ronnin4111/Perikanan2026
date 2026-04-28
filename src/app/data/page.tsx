@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authenticatedFetch, getUser, clearAuth } from '@/lib/auth-client';
 
 interface PelakuUsaha {
   id: string;
@@ -31,45 +32,11 @@ export default function DataManagementPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
-
-  // Edit modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingData, setEditingData] = useState<PelakuUsaha | null>(null);
-
-  // Delete confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
   const [message, setMessage] = useState({ type: '', text: '' });
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        } else {
-          router.push('/login');
-        }
-      } catch (err) {
-        console.error('Error fetching session:', err);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSession();
-  }, [router]);
-
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user, page, search]);
 
   const fetchData = async () => {
     try {
@@ -79,7 +46,7 @@ export default function DataManagementPage() {
         ...(search && { search })
       });
 
-      const response = await fetch(`/api/pelaku-usaha?${params}`, {
+      const response = await authenticatedFetch(`/api/pelaku-usaha?${params}`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -91,6 +58,31 @@ export default function DataManagementPage() {
       console.error('Error fetching data:', err);
     }
   };
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const currentUser = getUser();
+        
+        if (!currentUser) {
+          console.log('No user found, redirecting to login');
+          router.push('/login');
+          return;
+        }
+
+        setUser(currentUser);
+        console.log('User loaded:', currentUser);
+
+        // Fetch data
+        fetchData();
+      } catch (err) {
+        console.error('Error checking auth:', err);
+        router.push('/login');
+      }
+    };
+
+    checkAuth();
+  }, [router, page, search]);
 
   const handleEdit = (item: PelakuUsaha) => {
     setEditingData(item);
@@ -107,20 +99,23 @@ export default function DataManagementPage() {
     if (!editingData) return;
 
     try {
-      const response = await fetch(`/api/pelaku-usaha/${editingData.id}`, {
+      const response = await authenticatedFetch(`/api/pelaku-usaha/${editingData.id}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingData)
       });
 
       if (response.ok) {
         setShowEditModal(false);
+        setEditingData(null);
         setMessage({ type: 'success', text: 'Data berhasil diupdate!' });
         fetchData();
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } else {
+        setMessage({ type: 'error', text: 'Gagal mengupdate data' });
       }
     } catch (err) {
+      console.error('Error updating data:', err);
       setMessage({ type: 'error', text: 'Gagal mengupdate data' });
     }
   };
@@ -129,7 +124,7 @@ export default function DataManagementPage() {
     if (!deletingId) return;
 
     try {
-      const response = await fetch(`/api/pelaku-usaha/${deletingId}`, {
+      const response = await authenticatedFetch(`/api/pelaku-usaha/${deletingId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -140,8 +135,11 @@ export default function DataManagementPage() {
         setMessage({ type: 'success', text: 'Data berhasil dihapus!' });
         fetchData();
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } else {
+        setMessage({ type: 'error', text: 'Gagal menghapus data' });
       }
     } catch (err) {
+      console.error('Error deleting data:', err);
       setMessage({ type: 'error', text: 'Gagal menghapus data' });
     }
   };
@@ -150,7 +148,9 @@ export default function DataManagementPage() {
     return new Date(dateString).toLocaleString('id-ID', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -191,6 +191,15 @@ export default function DataManagementPage() {
                   Admin Panel
                 </a>
               )}
+              <button
+                onClick={() => {
+                  clearAuth();
+                  router.push('/login');
+                }}
+                className="text-sm text-red-600 dark:text-red-400 hover:underline"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -206,7 +215,9 @@ export default function DataManagementPage() {
               : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
           }`}>
             <p className={`text-sm ${
-              message.type === 'success' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'
+              message.type === 'success'
+              ? 'text-green-700 dark:text-green-400'
+              : 'text-red-700 dark:text-red-400'
             }`}>
               {message.text}
             </p>
@@ -223,7 +234,9 @@ export default function DataManagementPage() {
               placeholder="Cari nama, kelompok, kecamatan, atau desa..."
               className="w-full px-4 py-3 pl-12 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-400">
+              🔍
+            </span>
           </div>
         </div>
 
@@ -251,17 +264,17 @@ export default function DataManagementPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Produksi
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Updated
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-s slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Aksi
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-600">
                 {data.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-100 dark:hover:bg-slate-700/50">
                     <td className="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">
                       {item.nama}
                     </td>
@@ -274,36 +287,55 @@ export default function DataManagementPage() {
                     <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                       {item.desa || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-3 text-sm text-s600 dark:text-slate-400">
                       {item.jenisUsaha || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
-                      {item.produksi} kg
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">
+                      {item.wadahBudidaya ? `${item.wadahBudidaya} m²` : '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                      {item.kolam ? `${item.kolam}` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                      {item.lahan ? `${item.lahan} m²` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                      {item.produksi ? `${item.produksi} kg` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+                      {item.lat || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+                      {item.lng || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+                      {item.cbib ? 'Ya' : 'Tidak'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+                      {item.kusukaKelompok ? `${item.kusukaKelompok}` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       {formatDate(item.updatedAt)}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="px-2 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded text-xs font-medium transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition-colors"
-                        >
-                          Hapus
-                        </button>
-                      </div>
+                    <td className="px-4 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="px-2 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded text-xs font-medium transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition-colors"
+                      >
+                        Hapus
+                      </button>
                     </td>
                   </tr>
                 ))}
                 {data.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-slate-500 dark:text-slate-400">
+                    <td colSpan={8} className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
                       Data tidak ditemukan
                     </td>
                   </tr>
@@ -314,26 +346,38 @@ export default function DataManagementPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-600 flex items-center justify-between">
-              <div className="text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex items-center justify-center py-4">
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Sebelumnya
+              </button>
+              <span className="px-4 text-slate-600 dark:text-slate-400">
                 Halaman {page} dari {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                >
-                  →
-                </button>
-              </div>
+              </span>
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Selanjutnya
+              </button>
+              <span className="px-4 text-slate-600 dark:text-slate-400">
+                Halaman {page} dari {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(Math.min(totalPages, page - 1))}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                →
+              </button>
+              <span className="px-4 text-slate-600 dark:text-slate-400">
+                Akhir
+              </span>
+              </button>
             </div>
           )}
         </div>
@@ -341,255 +385,276 @@ export default function DataManagementPage() {
 
       {/* Edit Modal */}
       {showEditModal && editingData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-4xl p-6 my-8">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
                 Edit Data Pelaku Usaha
               </h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-xl"
+                className="text-slate-500 hover:text-slate-700 dark:text-slate-700 dark:hover:text-slate-300"
               >
                 ✕
               </button>
             </div>
+          </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Nama
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.nama}
-                    onChange={(e) => setEditingData({ ...editingData, nama: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                    required
-                  />
-                </div>
+          <form onSubmit={handleSaveEdit} className="space-y-4">
+            <div>
+              <label htmlFor="edit-nama" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Nama
+              </label>
+              <input
+                id="edit-nama"
+                type="text"
+                value={editingData.nama}
+                onChange={(e) => setEditingData({ ...editingData, nama: e.target.value })}
+                className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                required
+              />
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Kelompok
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.kelompok || ''}
-                    onChange={(e) => setEditingData({ ...editingData, kelompok: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Kecamatan
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.kecamatan}
-                    onChange={(e) => setEditingData({ ...editingData, kecamatan: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Desa
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.desa || ''}
-                    onChange={(e) => setEditingData({ ...editingData, desa: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Jenis Usaha
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.jenisUsaha || ''}
-                    onChange={(e) => setEditingData({ ...editingData, jenisUsaha: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Wadah Budidaya
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.wadahBudidaya || ''}
-                    onChange={(e) => setEditingData({ ...editingData, wadahBudidaya: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Jenis Ikan
-                  </label>
-                  <input
-                    type="text"
-                    value={editingData.jenisIkan || ''}
-                    onChange={(e) => setEditingData({ ...editingData, jenisIkan: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Jumlah Kolam
-                  </label>
-                  <input
-                    type="number"
-                    value={editingData.kolam}
-                    onChange={(e) => setEditingData({ ...editingData, kolam: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Luas Lahan (m²)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingData.lahan}
-                    onChange={(e) => setEditingData({ ...editingData, lahan: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Produksi (kg)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingData.produksi}
-                    onChange={(e) => setEditingData({ ...editingData, produksi: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Latitude
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={editingData.lat || ''}
-                    onChange={(e) => setEditingData({ ...editingData, lat: parseFloat(e.target.value) || null })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Longitude
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={editingData.lng || ''}
-                    onChange={(e) => setEditingData({ ...editingData, lng: parseFloat(e.target.value) || null })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    CBIB
-                  </label>
-                  <select
-                    value={editingData.cbib}
-                    onChange={(e) => setEditingData({ ...editingData, cbib: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  >
-                    <option value={0}>Tidak</option>
-                    <option value={1}>Ya</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Skor KUSUKA Kelompok
-                  </label>
-                  <input
-                    type="number"
-                    value={editingData.kusukaKelompok}
-                    onChange={(e) => setEditingData({ ...editingData, kusukaKelompok: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                  />
-                </div>
+              <div>
+                <label htmlFor="edit-kelompok" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Kelompok
+                </label>
+                <input
+                  id="edit-kelompok"
+                  type="text"
+                  value={editingData.kelompok || ''}
+                  onChange={(e) => setEditingData({ ...editingData, kelompok: e.target.value })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-600">
+              <div>
+                <label htmlFor="edit-kecamatan" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Kecamatan
+                </label>
+                <input
+                  id="edit-kecamatan"
+                  type="text"
+                  value={editingData.kecamatan}
+                  onChange={(e) => setEditingData({ ...editingData, kecamatan: e.target.value })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-desa" className="block text-sm font medium text-slate-700 dark:text-slate-300 mb-2">
+                  Desa
+                </label>
+                <input
+                  id="edit-desa"
+                  type="text"
+                  value={editingData.desa || ''}
+                  onChange={(e) => setEditingData({ ...editingData, desa: e.target.value })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-jenisUsaha" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Jenis Usaha
+                </label>
+                <input
+                  id="edit-jenisUsaha"
+                  type="text"
+                  value={editingData.jenisUsaha || ''}
+                  onChange={(e) => setEditingData({ ...editingData, jenisUsaha: e.target.value })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-wadahBudidaya" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Wadah Budidaya
+                </label>
+                <input
+                  id="edit-wadahBudidaya"
+                  type="text"
+                  value={editingData.wadahBudidaya || ''}
+                  onChange={(e) => setEditingData({ ...editingData, wadahBudidaya: e.target.value })}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-sale-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-kolam" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Jumlah Kolam
+                </label>
+                <input
+                  id="edit-kolam"
+                  type="number"
+                  value={editingData.kolam || ''}
+                  onChange={(e) => setEditingData({ ...editingData, kolam: parseInt(e.target.value) || 0)}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-lahan" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Luas Lahan (m²)
+                </label>
+                <input
+                  id="edit-lahan"
+                  type="text"
+                  value={editingData.lahan || ''}
+                  onChange={(e) => setEditingData({ ...editingData, lahan: parseFloat(e.target.value) || null)}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-produksi" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Produksi (kg)
+                </label>
+                <input
+                  id="edit-produksi"
+                  type="number"
+                  value={editingData.produksi || ''}
+                  onChange={(e) => setEditingData({ ...editingData, produksi: parseFloat(e.target.value) || 0)}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  required
+                />
+                </div>
+
+              <div>
+                <label htmlFor="edit-lat" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Latitude
+                </label>
+                <input
+                  id="edit-lat"
+                  type="text"
+                  value={editingData.lat || ''}
+                  onChange={(e) => setEditingData({ ...editingData, lat: parseFloat(e.target.value) || null)}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-lng" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Longitude
+                </label>
+                <input
+                  id="edit-lng"
+                  type="text"
+                  value={editingData.lng || ''}
+                  onChange={(e) => setEditingData({ ...editingData, lng: parseFloat(e.target.value) || null)}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-per-1000 dark:bg-slate-700 text-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-cbib" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  CBIB (Ya/Tidak)
+                </label>
+                <select
+                  id="edit-cbib"
+                  value={editingData.cbib ? '1' : '0'}
+                  onChange={(e) => setEditingData({ ...editingData, cbib: parseInt(e.target.value) ? 1 : 0})}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                >
+                  <option value="0">Tidak</option>
+                  <option value="1">Ya</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="edit-kusukaKelompok" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Skor KUSUKA Kelompok
+                </label>
+                <input
+                  id="edit-kusukaKelompok"
+                  type="number"
+                  value={editingData.kusukaKelompok || ''}
+                  onChange={(e) => setEditingData({ ...editingData, kusukaKelompok: parseInt(e.target.value) || 0})}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-sale-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="edit-cbib" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Nomor CBIB
+                </label>
+                <input
+                  id="edit-cbib"
+                  type="number"
+                  value={editingData.cbib || 0}
+                  onChange={(e) => setEditingData({ ...editingData, cbib: parseInt(e.target.value) || 0})}
+                  className="w-full px-4 py-3 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  type="submit"
+                  className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Simpan Perubahan
+                  </button>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  Simpan Perubahan
-                </button>
+                  className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    Batal
+                  </button>
+                </div>
               </div>
             </form>
           </div>
-        </div>
-      )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">⚠️</span>
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                Konfirmasi Hapus
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeletingId(null);
-                }}
-                className="flex-1 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => setShowEditModal(false)}
+              className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
               >
-                Batal
+              Tutup
               </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Hapus
-              </button>
-            </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  );
+
+  {/* Delete Confirmation Modal */}
+  {showDeleteModal && (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+            Konfirmasi Hapus
+          </h3>
+          <p className="text-stext-slate-600 dark:text-slate-400">
+            Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
+          </p>
+        </div>
+
+        <div className="flex gap-3 pt-4">
+          <button
+            onClick={() => setShowDeleteModal(false)}
+            className="flex-1 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+            >
+            Batal
+            </button>
+          <button
+            onClick={handleConfirmDelete}
+            className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Hapus
+            </button>
+        </div>
+      </div>
     </div>
   );
 }

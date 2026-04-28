@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authenticatedFetch, getUser, clearAuth } from '@/lib/auth-client';
 
 interface User {
   id: string;
@@ -52,47 +53,9 @@ export default function AdminDashboard() {
     role: 'OPERATOR' as 'ADMIN' | 'OPERATOR'
   });
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-
-          // Check if admin
-          if (data.user?.role !== 'ADMIN') {
-            router.push('/input');
-            return;
-          }
-
-          // Fetch data
-          await Promise.all([
-            fetchUsers(),
-            fetchActivityLogs(),
-            fetchStats()
-          ]);
-        } else {
-          router.push('/login');
-        }
-      } catch (err) {
-        console.error('Error fetching session:', err);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSession();
-  }, [router]);
-
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users', {
-        credentials: 'include'
-      });
+      const response = await authenticatedFetch('/api/admin/users');
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
@@ -104,9 +67,7 @@ export default function AdminDashboard() {
 
   const fetchActivityLogs = async () => {
     try {
-      const response = await fetch('/api/admin/activity', {
-        credentials: 'include'
-      });
+      const response = await authenticatedFetch('/api/admin/activity');
       if (response.ok) {
         const data = await response.json();
         setActivityLogs(data.logs || []);
@@ -118,9 +79,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/pelaku-usaha', {
-        credentials: 'include'
-      });
+      const response = await authenticatedFetch('/api/pelaku-usaha');
       if (response.ok) {
         const data = await response.json();
         setStats(prev => ({
@@ -136,10 +95,8 @@ export default function AdminDashboard() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await authenticatedFetch('/api/admin/users', {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser)
       });
 
@@ -156,9 +113,8 @@ export default function AdminDashboard() {
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/toggle`, {
-        method: 'PATCH',
-        credentials: 'include'
+      const response = await authenticatedFetch(`/api/admin/users/${userId}/toggle`, {
+        method: 'PATCH'
       });
 
       if (response.ok) {
@@ -229,6 +185,15 @@ export default function AdminDashboard() {
               <a href="/dashboard" className="text-sm text-purple-600 dark:text-purple-400 hover:underline">
                 Dashboard Publik
               </a>
+              <button
+                onClick={() => {
+                  clearAuth();
+                  router.push('/login');
+                }}
+                className="text-sm text-red-600 dark:text-red-400 hover:underline"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -470,8 +435,7 @@ export default function AdminDashboard() {
                       </p>
                     )}
                   </div>
-                </div>
-              ))}
+                ))}
               {activityLogs.length === 0 && (
                 <p className="text-center text-slate-500 dark:text-slate-400 py-8">
                   Belum ada aktivitas tercatat

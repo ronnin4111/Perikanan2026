@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authenticatedFetch, getUser, clearAuth } from '@/lib/auth-client';
 
 export default function InputDataPage() {
   const router = useRouter();
@@ -42,26 +43,25 @@ export default function InputDataPage() {
 
   // Fetch user session
   useEffect(() => {
-    const fetchSession = async () => {
+    const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        } else {
+        const currentUser = getUser();
+        setUser(currentUser);
+        console.log('Current user:', currentUser);
+        
+        if (!currentUser) {
+          console.log('No user found, redirecting to login');
           router.push('/login');
+          return;
         }
-      } catch (err) {
-        console.error('Error fetching session:', err);
-        router.push('/login');
-      } finally {
         setLoading(false);
+      } catch (err) {
+        console.error('Error checking auth:', err);
+        router.push('/login');
       }
     };
 
-    fetchSession();
+    checkAuth();
   }, [router]);
 
   // Get current location
@@ -92,10 +92,8 @@ export default function InputDataPage() {
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch('/api/pelaku-usaha', {
+      const response = await authenticatedFetch('/api/pelaku-usaha', {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
@@ -135,10 +133,7 @@ export default function InputDataPage() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { 
-      method: 'POST',
-      credentials: 'include'
-    });
+    clearAuth();
     router.push('/login');
   };
 

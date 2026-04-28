@@ -20,22 +20,30 @@ export default function LoginPage() {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Login successful - force reload to properly set session
-        window.location.href = data.user.role === 'ADMIN' ? '/admin/dashboard' : '/input';
+        // Save token to localStorage
+        localStorage.setItem('auth-token', data.token);
+        localStorage.setItem('auth-user', JSON.stringify(data.user));
+        
+        console.log('Token saved to localStorage');
+        
+        // Redirect based on role
+        if (data.user.role === 'ADMIN') {
+          window.location.href = '/admin/dashboard';
+        } else {
+          window.location.href = '/input';
+        }
       } else {
         setError(data.error || 'Login gagal');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError('Terjadi kesalahan saat login');
     } finally {
       setLoading(false);
@@ -95,7 +103,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-                placeholder="•••••••••"
+                placeholder="•••••••••••"
                 required
                 disabled={loading}
               />
@@ -111,7 +119,7 @@ export default function LoginPage() {
                 <span className="flex items-center justify-center">
                   <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8 0v4.586"></path>
                   </svg>
                   Memuat...
                 </span>

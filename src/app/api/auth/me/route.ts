@@ -1,11 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    console.log('GET /api/auth/me called');
-    const user = await getSession();
-    console.log('Session result:', user ? `User found: ${user.email}` : 'No session found');
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    console.log('GET /api/auth/me called, token:', token.substring(0, 20) + '...');
+
+    const user = await getSession(token);
 
     if (!user) {
       return NextResponse.json(
