@@ -969,15 +969,24 @@
                     <!-- Right side -->
                     <div class="flex items-center gap-3">
                         <!-- Digital clock -->
-                        <div x-text="currentTime" 
+                        <div x-text="currentTime"
                              class="hidden md:block text-white font-mono text-sm bg-cyan-900/50 px-3 py-1 rounded-lg"></div>
-                        
+
+                        <!-- Admin Login Button -->
+                        <a href="/login"
+                           class="hidden md:flex items-center gap-2 px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                            <span class="font-medium">Login</span>
+                        </a>
+
                         <!-- Dark mode toggle -->
                         <button @click="toggleDarkMode"
                                 class="p-2 rounded-lg hover:bg-cyan-700 transition-colors text-white"
                                 x-text="darkMode ? '☀️' : '🌙'">
                         </button>
-                        
+
                         <!-- Data count badge -->
                         <div class="bg-cyan-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                             <span x-text="filtered.length"></span> Data
@@ -1566,6 +1575,14 @@
                     </svg>
                     <span class="label">Export</span>
                 </button>
+                <a href="/login"
+                   class="mobile-nav-item"
+                   :class="{ 'active': mobileActiveTab === 'login' }">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span class="label">Login</span>
+                </a>
             </div>
         </nav>
 
