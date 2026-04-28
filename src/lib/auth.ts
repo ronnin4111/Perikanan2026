@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { User, ActivityLog, LogAction } from '@prisma/client';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import bcrypt from 'bcryptjs';
 
 export interface AuthUser {
@@ -153,8 +153,8 @@ export async function logActivity(
 }
 
 export async function getUserIP(): Promise<string | undefined> {
-  const headers = await headers();
-  return headers.get('x-forwarded-for')?.split(',')[0] ||
-         headers.get('x-real-ip') ||
+  const requestHeaders = await headers();
+  return requestHeaders.get('x-forwarded-for')?.split(',')[0] ||
+         requestHeaders.get('x-real-ip') ||
          undefined;
 }
