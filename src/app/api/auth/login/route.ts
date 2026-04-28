@@ -2,14 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyPassword } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { LogAction } from '@prisma/client';
-import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
-
-    console.log('Login attempt for email:', email);
 
     if (!email || !password) {
       return NextResponse.json(
@@ -23,7 +20,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      console.log('User not found');
       return NextResponse.json(
         { error: 'Email atau password salah' },
         { status: 401 }
@@ -31,7 +27,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user.isActive) {
-      console.log('User not active');
       return NextResponse.json(
         { error: 'Akun tidak aktif' },
         { status: 401 }
@@ -40,7 +35,6 @@ export async function POST(request: NextRequest) {
 
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
-      console.log('Invalid password');
       return NextResponse.json(
         { error: 'Email atau password salah' },
         { status: 401 }
@@ -55,14 +49,11 @@ export async function POST(request: NextRequest) {
         entity: null,
         entityType: null,
         oldValues: null,
-        newValues: null,
-        ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] ||
-                 request.headers.get('x-real-ip') ||
-                 undefined
+        newValues: null
       }
     });
 
-    // Set session cookie in response
+    // Create response with user data
     const response = NextResponse.json({
       success: true,
       user: {
@@ -73,15 +64,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Set session cookie
     response.cookies.set('dpkpp_session', user.id, {
       httpOnly: false,
       secure: false,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 8, // 8 hours
+      maxAge: 60 * 60 * 8,
       path: '/'
     });
 
-    console.log('Login successful, cookie set for user:', user.email);
     return response;
   } catch (error) {
     console.error('Login API error:', error);

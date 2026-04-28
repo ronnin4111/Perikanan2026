@@ -72,9 +72,6 @@ export async function getSession(): Promise<AuthUser | null> {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    console.log('getSession - Looking for cookie:', SESSION_COOKIE_NAME);
-    console.log('getSession - Session ID found:', sessionId ? sessionId?.substring(0, 8) + '...' : 'null');
-
     if (!sessionId) {
       return null;
     }
@@ -82,8 +79,6 @@ export async function getSession(): Promise<AuthUser | null> {
     const user = await db.user.findUnique({
       where: { id: sessionId }
     });
-
-    console.log('getSession - User from DB:', user ? user.email : 'null');
 
     if (!user || !user.isActive) {
       return null;
@@ -102,11 +97,6 @@ export async function getSession(): Promise<AuthUser | null> {
 }
 
 export async function logout(): Promise<void> {
-  const session = await getSession();
-  if (session) {
-    await logActivity(session.id, LogAction.LOGOUT, null, null, null, null);
-  }
-
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
 }

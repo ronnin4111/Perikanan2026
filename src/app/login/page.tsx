@@ -23,18 +23,15 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Login successful
-        if (data.user.role === 'ADMIN') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/input');
-        }
+      if (response.ok && data.success) {
+        // Login successful - force reload to properly set session
+        window.location.href = data.user.role === 'ADMIN' ? '/admin/dashboard' : '/input';
       } else {
         setError(data.error || 'Login gagal');
       }
