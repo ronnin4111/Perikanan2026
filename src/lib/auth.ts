@@ -45,10 +45,11 @@ export async function login(email: string, password: string): Promise<{ user: Au
     // Set session cookie
     const cookieStore = await cookies();
     cookieStore.set(SESSION_COOKIE_NAME, user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false,
+      secure: false,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 8 // 8 hours
+      maxAge: 60 * 60 * 8, // 8 hours
+      path: '/'
     });
 
     return {
@@ -71,6 +72,9 @@ export async function getSession(): Promise<AuthUser | null> {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
+    console.log('getSession - Looking for cookie:', SESSION_COOKIE_NAME);
+    console.log('getSession - Session ID found:', sessionId ? sessionId?.substring(0, 8) + '...' : 'null');
+
     if (!sessionId) {
       return null;
     }
@@ -78,6 +82,8 @@ export async function getSession(): Promise<AuthUser | null> {
     const user = await db.user.findUnique({
       where: { id: sessionId }
     });
+
+    console.log('getSession - User from DB:', user ? user.email : 'null');
 
     if (!user || !user.isActive) {
       return null;
