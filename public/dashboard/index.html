@@ -827,6 +827,63 @@
         .leaflet-cluster-icon {
             z-index: 5 !important;
         }
+
+        /* Mobile Specific Improvements */
+        @media (max-width: 767px) {
+            /* Larger touch targets for mobile */
+            .mobile-nav-item {
+                min-width: 60px;
+                padding: 12px 8px;
+            }
+
+            /* Better spacing for mobile cards */
+            .stat-card {
+                padding: 12px;
+            }
+
+            /* Mobile search bar improvements */
+            .search-enhanced {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px 16px 12px 44px;
+            }
+
+            /* Mobile table improvements */
+            .table-container {
+                font-size: 13px;
+            }
+
+            /* Mobile pagination */
+            .btn-modern {
+                padding: 8px 12px;
+                min-width: 40px;
+            }
+
+            /* Mobile chart container adjustments */
+            .chart-container {
+                min-height: 200px;
+            }
+
+            /* Mobile sidebar improvements */
+            aside {
+                max-width: 100%;
+            }
+
+            /* Mobile map legend */
+            #map-section .flex.grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* iOS safe area handling */
+        @supports (padding: max(0px)) {
+            .mobile-nav {
+                padding-bottom: max(0px, env(safe-area-inset-bottom));
+            }
+
+            main {
+                padding-bottom: max(96px, env(safe-area-inset-bottom) + 72px);
+            }
+        }
     </style>
 </head>
 <body :class="{ 'dark': darkMode }" class="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
@@ -885,7 +942,7 @@
         
         <!-- Header -->
         <header class="sticky top-0 z-30 bg-cyan-800 dark:bg-[#0e4a5a] shadow-lg">
-            <div class="px-4 py-3">
+            <div class="px-3 md:px-4 py-3">
                 <div class="flex items-center justify-between">
                     <!-- Left side -->
                     <div class="flex items-center gap-3">
@@ -962,7 +1019,7 @@
                 <div class="p-4 space-y-6">
                     
                     <!-- Modern Summary Cards -->
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 gap-3 md:grid-cols-2">
                         <!-- Total Pelaku Usaha -->
                         <div class="stat-card card-modern p-5 stagger-1 fadeInUp" style="color: #0891b2;">
                             <div class="flex items-start justify-between mb-3">
@@ -1231,12 +1288,12 @@
                 </div>
             </aside>
             
-            <!-- Main Content -->
-            <main class="flex-1 p-4 md:p-6 overflow-y-auto">
+        <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-6 overflow-y-auto pb-24 md:pb-6">
                 <div class="space-y-6">
                     
                     <!-- Map Section -->
-                    <div id="map-section" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4">
+                    <div id="map-section" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 md:p-6">
                         <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">🗺️ Peta Sebaran</h2>
                         
                         <!-- Map filter -->
@@ -1297,7 +1354,7 @@
                     </div>
 
                     <!-- Data Table Section -->
-                    <div class="chart-card card-modern p-5 bg-white dark:bg-slate-800 rounded-xl">
+                    <div class="chart-card card-modern p-4 md:p-5 bg-white dark:bg-slate-800 rounded-xl">
                         <div class="flex flex-col gap-4 mb-4">
                             <!-- Header -->
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -1466,42 +1523,42 @@
         </div>
         
         <!-- Mobile Navigation Bar -->
-        <nav class="mobile-nav md:hidden" x-data="{ activeTab: 'dashboard' }">
+        <nav class="mobile-nav md:hidden">
             <div class="flex items-center justify-around py-2">
-                <button @click="activeTab = 'dashboard'; scrollToSection('dashboard')"
-                        :class="{ 'active': activeTab === 'dashboard' }"
+                <button @click="scrollToSection('dashboard')"
+                        :class="{ 'active': mobileActiveTab === 'dashboard' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
                     <span class="label">Home</span>
                 </button>
-                <button @click="activeTab = 'data'; scrollToSection('table')"
-                        :class="{ 'active': activeTab === 'data' }"
+                <button @click="scrollToSection('data')"
+                        :class="{ 'active': mobileActiveTab === 'data' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                     </svg>
                     <span class="label">Data</span>
                 </button>
-                <button @click="activeTab = 'map'; scrollToSection('map')"
-                        :class="{ 'active': activeTab === 'map' }"
+                <button @click="scrollToSection('map')"
+                        :class="{ 'active': mobileActiveTab === 'map' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                     </svg>
                     <span class="label">Peta</span>
                 </button>
-                <button @click="activeTab = 'filter'; sidebarOpen = !sidebarOpen"
-                        :class="{ 'active': activeTab === 'filter' }"
+                <button @click="scrollToSection('export')"
+                        :class="{ 'active': mobileActiveTab === 'export' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                     </svg>
                     <span class="label">Filter</span>
                 </button>
-                <button @click="activeTab = 'export'; scrollToSection('export')"
-                        :class="{ 'active': activeTab === 'export' }"
+                <button @click="scrollToSection('export')"
+                        :class="{ 'active': mobileActiveTab === 'export' }"
                         class="mobile-nav-item">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -1535,6 +1592,6 @@
 
     <!-- Load Scripts - Using v6 for UI improvements -->
     <script src="auth-v2.js"></script>
-    <script src="app-v6.js"></script>
+    <script src="app-v7.js"></script>
 </body>
 </html>
