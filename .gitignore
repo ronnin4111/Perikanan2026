@@ -52,3 +52,45 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Database files (PENTING!)
+db/
+*.db
+*.sqlite
+*.sqlite3
+custom.db
+
+# Uploads folder (PENTING!)
+upload/
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.pdf
+
+# Old dashboard (Vanilla JS - tidak dipakai di Next.js version)
+public/dashboard/
+
+# Development scripts temporary files
+test-db.ts
+test-*.ts
+temp-*.ts
+
+# Additional config files not needed in production
+Caddyfile
+run-server.sh
+run-dev.sh
+run-prod-server.js
+keep-server-alive.sh
+monitor-server.sh
+
+# Documentation for development only
+docs/google-sheets-setup.md
+FIXES_SUMMARY.md
+README-SYSTEM.md
+analyze_image.ts
+
+# Example files
+examples/
